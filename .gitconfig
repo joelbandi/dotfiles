@@ -1,0 +1,9 @@
+# This is Git's per-user configuration file.
+[user]
+	name = Joel Bandi
+	email = joelvivekbandi@gmail.com
+[core]
+	editor = nano
+	excludesfile = ~/.gitignore
+[sequence]
+	editor = rebase-editor
