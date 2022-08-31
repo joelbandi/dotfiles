@@ -26,3 +26,5 @@ It uses ansible [core 2.13.3]
 3. Check to make sure the variables in `group_vars/local` file in this project has the correct values
 4. Run `ansible-playbook -i hosts.yml playbook.yml` to automatically terraform your machine.
 5. Customize playbook.yml according to you liking if you need to make any changes or add any steps.
+
+The `Vagrantfile` is just used for testing this playbook.
