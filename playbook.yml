@@ -1,0 +1,116 @@
+- name: Set up the local MacOS dev work station
+  hosts: local
+  tasks:
+    - name: Install brew if required
+      register: install_brew_if_required
+      shell: |
+        if [[! command -v brew &> /dev/null]] && [["$OSTYPE" == "darwin"*]]
+        then
+            curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh
+            echo "Brew installed"
+        else
+            echo "Brew already exists or it isnt MacOS"
+        fi
+      args:
+        executable: /bin/bash
+      changed_when: '"Brew installed" in install_brew_if_required.stdout'
+    - name: Install git if required
+      register: install_git_if_required
+      shell: |
+        if ! command -v git &> /dev/null
+        then
+            brew install git
+            echo "Git installed"
+        else
+            echo "Git already exists"
+        fi
+      args:
+        executable: /bin/bash
+      changed_when: '"Git installed" in install_git_if_required.stdout'
+    - name: Copy .gitignore file
+      copy:
+        src: "dotfiles/.gitignore"
+        dest: "~/.gitignore"
+        backup: yes
+    - name: Copy .gitconfig file
+      template:
+        src: "dotfiles/.gitconfig.j2"
+        dest: "~/.gitconfig"
+        backup: yes
+    - name: Install Zsh if required
+      register: install_zsh_if_required
+      shell: |
+        if [[! echo $ZSH_VERSION &> /dev/null]]
+        then
+            brew install zsh
+            echo "Zsh installed"
+        else
+            echo "Zsh already exists or it isnt MacOS"
+        fi
+      args:
+        executable: /bin/bash
+      changed_when: '"Brew installed" in install_zsh_if_required.stdout'
+    - name: Check for oh-my-zsh installation
+      stat: "path=~/.oh-my-zsh"
+      register: oh_my_zsh_stat
+    - name: Install oh-my-zsh
+      raw: "sh -c \"$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)\""
+      when: not oh_my_zsh_stat.stat.exists
+    - name: Copy .zshrc file
+      copy:
+        src: 'dotfiles/.zshrc'
+        dest: '~/.zshrc'
+        backup: yes
+    - name: Copy .zshrc.pre-oh-my-zsh file
+      copy:
+        src: 'dotfiles/.zshrc.pre-oh-my-zsh'
+        dest: '~/.zshrc.pre-oh-my-zsh'
+        backup: no
+    - name: Copy oh-my-zsh git plugin file
+      copy:
+        src: 'dotfiles/git.plugin.zsh'
+        dest: '~/.oh-my-zsh/plugins/git/git.plugin.zsh'
+        backup: no
+    - name: Check for asdf-vm installation
+      stat: "path=~/.asdf"
+      register: asdf_vm_stat
+    - name: Install asdf-vm
+      git:
+        repo: https://github.com/asdf-vm/asdf.git
+        dest: "~/.asdf"
+        version: "v0.10.2"
+    - name: Reload environment
+      raw: 'source ~/.zshrc'
+      args:
+        executable: '/bin/zsh'
+    - name: Add ruby plugin
+      command: "asdf plugin-add ruby"
+      register: ruby_add
+      failed_when: ruby_add == 2
+    - name: "Install ruby versions"
+      command: asdf install ruby {{item}}
+      loop:
+        - '2.7.5'
+        - '3.1.0'
+    - name: Set global version for ruby to 2.7.5
+      command: "asdf global ruby 2.7.5"
+    - name: Add golang plugin to asdf
+      command: "asdf plugin-add golang"
+      register: golang_add
+      failed_when: golang_add == 2
+    - name: Install golang 1.18.2 with asdf
+      command: "asdf install golang 1.18.2"
+    - name: Set global version for golang to 1.18.2
+      command: "asdf global golang 1.18.2"
+    - name: Add nodejs plugin to asdf [https://github.com/asdf-vm/asdf-nodejs]
+      command: "asdf plugin-add nodejs"
+      register: node_add
+      failed_when: node_add == 2
+    - name: Install nodejs 16.13.0 with asdf
+      command: asdf install nodejs 16.13.0
+    - name: Set global version for nodejs to 16.13.0
+      command: "asdf global nodejs 16.13.0"
+    - name: Install rebase editor npm package
+      npm:
+        name: rebase-editor
+        global: yes
