@@ -1,7 +1,7 @@
 # Dotfiles and Dev system management with Ansible
 
 
-This Project contains some configuration and yaml files that allows Ansible to setup my dev environment in a brand new MacOs environment including packages, apps, system config and .*rc files.
+This Project contains some configuration and yaml files that allows Ansible to setup my dev environment in a brand new MacOs environment including packages, apps, system config and .*rc files in a consistent and reproducible way to your liking
 
 It uses ansible [core 2.13.3]
  
